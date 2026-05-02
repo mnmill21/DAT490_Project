@@ -6,7 +6,7 @@ This repository contains code, data references, figures, and written reports for
 - `notebooks/`: Colab notebooks and Python scripts
 - `data/`: raw and processed datasets
 - `figures/`: exported visualizations used in reports and slides
-- `reports/`: LaTeX drafts, methodology, EDA, and presentation materials
+- `reports/`: LaTeX drafts (project plan, literature review, methodology, EDA, results, and rough draft) and presentation materials
 
 ## Main Data Sources
 - BTS T-100 Domestic Segment
