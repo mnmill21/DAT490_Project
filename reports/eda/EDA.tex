@@ -1,0 +1,241 @@
+\documentclass[11pt, letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{float}
+\usepackage{array}
+\usepackage{microtype}
+
+\setlength{\parskip}{8pt}
+\onehalfspacing
+
+\title{\textbf{Exploratory Data Analysis: \\ Analysis of U.S. Airline Cost Efficiency and Operational Performance}}
+\author{Jood Alaswad, Arnol Garcia, Marissa Miller, Brandon Thacker}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Data Sources, Preparation, and Cleaning}
+
+This analysis integrates three datasets from the Bureau of Transportation Statistics (BTS), each capturing a distinct dimension of airline operations across U.S. domestic carriers.
+
+The \textbf{T-100 Domestic Segment dataset} provides flight-level operational and traffic information, including passengers, freight, mail, distance, departures, and available seats. After loading, it contained 2,193,983 rows and 38 columns. Numeric columns were coerced from mixed-type string representations, and rows were aggregated to the carrier-quarter-year level using a composite match key (\texttt{CARRIER + "Q" + YEAR + QUARTER}). Derived route-level features (such as route count, average passengers per route, and average distance per route) were computed prior to aggregation. The resulting aggregated dataset contained 4,440 carrier-quarter observations.
+
+The \textbf{Form 41 Schedule P-1.2 financial dataset} contains quarterly income statement data at the carrier level, with 3,678 rows and 53 columns covering operating revenues, operating expenses, net income, operating profit/loss, and itemized cost categories such as flying operations, maintenance, passenger service, depreciation, and general administration. This dataset was similarly aggregated to the carrier-quarter-year level (1,876 unique carrier-quarter observations) and merged into the T-100 aggregate via the shared match key. A final net income field (\texttt{NET\_INCOME\_FINAL}) was constructed by preferring Form 41 values and backfilling from T-100 where available, yielding non-null financial data for 1,825 of the 4,440 observations.
+
+The \textbf{On-Time Performance (OTP) dataset}, sourced from Kaggle and derived from BTS records, contains 398,233 monthly observations spanning 2003--2024, with 21 columns covering arrival delays, cancellations, diversions, and delay-cause breakdowns. After filtering to 2016--2025, the data were aggregated to the carrier-quarter-year level, computing on-time rate, cancellation rate, average arrival delay, and proportional delay causes (carrier, weather, NAS, and late aircraft). Merging with the main dataset required resolving a leading-whitespace discrepancy in carrier codes---stripping whitespace from both sides before joining on carrier, year, and quarter. This corrected merge yielded 729 matched carrier-quarter observations covering Legacy, Regional, Low-Cost, and other carrier types.
+
+Carriers were classified into four groups---Legacy, Low-Cost, Cargo, and Regional---using standard IATA two-letter codes. A temporal period label was applied: pre-COVID (2016--2019), COVID (2020--2021), and post-COVID (2022--2025) \cite{fontanet2022}. Derived engineered features included operating margin, net margin, cost per passenger, revenue per passenger, profit per passenger, passengers per distance, and freight per distance. The final analytic dataset contained 4,440 rows and 116 columns.
+
+\section{Descriptive Statistics}
+
+Table~\ref{tab:desc} presents descriptive statistics for the primary variables of interest across all 4,440 carrier-quarter observations. Passenger and distance metrics are available for all observations, while financial and on-time metrics are available only for the subset of carrier-quarters that matched with Form 41 or OTP data, respectively.
+
+\begin{table}[H]
+\centering
+\caption{Descriptive Statistics for Key Variables (Carrier-Quarter Level)}
+\label{tab:desc}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+\textbf{Variable} & \textbf{N} & \textbf{Missing} & \textbf{Mean} & \textbf{Std Dev} & \textbf{Median} & \textbf{Max} \\
+\midrule
+Passengers              & 4,440 & 0     & 1,449,912   & 5,448,102   & ---      & ---  \\
+Freight (lbs)           & 4,440 & 0     & 52,406,363  & 305,874,600 & ---      & ---  \\
+Distance (mi)           & 4,440 & 0     & 392,386     & 1,194,779   & ---      & ---  \\
+Route Count             & 4,440 & 0     & 227         & 487         & ---      & ---  \\
+Avg Dist/Route (mi)     & 4,440 & 0     & 1,152       & 1,257       & ---      & ---  \\
+Operating Revenue (\$K) & 1,825 & 2,615 & 277,881     & 758,809     & ---      & ---  \\
+Operating Expenses (\$K)& 1,825 & 2,615 & 322,472     & 890,533     & ---      & ---  \\
+Net Income (\$K)        & 1,825 & 2,615 & $-$37,030   & 203,279     & ---      & ---  \\
+Operating Margin        & 1,788 & 2,652 & $-$0.20     & 1.75        & $-$0.004 & ---  \\
+Net Margin              & 1,788 & 2,652 & $-$0.17     & 1.67        & $-$0.017 & ---  \\
+Cost per Passenger (\$) & 1,227 & 3,213 & 362         & 5,466       & 0.104    & ---  \\
+Revenue per Passenger (\$) & 1,227 & 3,213 & 358       & 5,435       & 0.098    & ---  \\
+On-Time Rate            & 729   & 3,711 & 0.82        & 0.07        & 0.820    & ---  \\
+Cancellation Rate       & 729   & 3,711 & 0.03        & 0.04        & 0.017    & ---  \\
+Avg Arrival Delay (min) & 729   & 3,711 & 67.7        & 14.4        & ---      & ---  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Several patterns emerge immediately. Operating expenses exceed operating revenues on average, resulting in a mean net income of approximately $-$\$37 million per carrier-quarter. Median operating margin is $-$0.004, indicating that a typical carrier-quarter observation barely breaks even. The high standard deviation in both cost and revenue per passenger reflects the heterogeneity across cargo carriers, regional operators, and large legacy carriers. The on-time rate median of 82\% is consistent with prior BTS reporting and national benchmarks \cite{bts2026otp}, and cancellation rates are low on average but highly right-skewed. Missing data for financial and OTP variables reflects the limited overlap between the three source datasets, particularly the narrower coverage of Form 41 and OTP relative to T-100.
+
+\section{Temporal Trends (2016--2024)}
+
+Figure~\ref{fig:fig0} displays year-level aggregate trends for total passengers, total freight, operating revenue, operating expenses, average quarterly net income, and average on-time rate from 2016 through 2024, with the COVID period (2020--2021) shaded in red.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig0_yearly_trends.png}
+    \caption{U.S. Airline Industry Trends, 2016--2024. Each panel shows a year-level aggregate of the labeled metric. The shaded red region indicates the COVID-19 period (2020--2021).}
+    \label{fig:fig0}
+\end{figure}
+
+Passenger volume grew steadily from approximately 700 million in 2016 to a pre-pandemic peak in 2019, collapsed sharply to under 200 million in 2020, and recovered strongly through 2023--2024, approaching or exceeding pre-COVID levels. This pattern is consistent with documented demand collapse and recovery trajectories in the literature \cite{gudmundsson2021}.
+
+Freight volume followed a counter-cyclical pattern, peaking in 2020--2021 as passenger belly capacity contracted and e-commerce demand surged, a phenomenon observed broadly across air cargo markets during the pandemic \cite{fontanet2022}. Operating revenues and expenses declined sharply during COVID and recovered in parallel, though expenses recovered faster than revenues in 2020--2021, consistent with the large operating losses that characterized the period. Average net income fell into deeply negative territory during COVID, reaching approximately $-$\$140,000K per carrier-quarter in 2020.
+
+The on-time rate, counterintuitively, improved during 2020--2021. This is explained by dramatically reduced schedule density: with fewer flights operating, hub congestion dissipated and late-aircraft cascade effects diminished \cite{mayer2002}. As flight volumes recovered post-2022, on-time performance returned to and then declined slightly below pre-pandemic levels, suggesting that congestion effects reasserted themselves as schedules normalized.
+
+\section{Distributions of Key Financial and Operational Metrics}
+
+Figure~\ref{fig:fig1} presents histograms for six key variables: operating margin, net margin, cost per passenger, revenue per passenger, on-time rate, and cancellation rate. Each histogram includes a dashed vertical line indicating the median.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig1_distributions.png}
+    \caption{Distributions of key financial and operational metrics across all carrier-quarter observations. Dashed vertical lines indicate the median for each variable.}
+    \label{fig:fig1}
+\end{figure}
+
+Both margin distributions are approximately bell-shaped but exhibit heavy left tails, reflecting extreme losses during the COVID period. The median operating margin of $-$0.004 and median net margin of $-$0.017 indicate that the typical carrier-quarter observation is marginally unprofitable when averaged across all periods and carrier types, consistent with the thin-margin nature of the airline industry \cite{banker1993}. The cost and revenue per passenger distributions are strongly right-skewed, driven by a small number of cargo and ultra-regional carriers with extreme per-passenger values.
+
+The on-time rate distribution is concentrated between 0.75 and 0.92, with a median of 0.82, while the cancellation rate distribution is concentrated near zero with a sharp right tail representing weather events and COVID-era mass cancellations. These distributions motivate the use of nonparametric comparisons---such as violin plots and boxplots---in subsequent analyses rather than assuming normality.
+
+\section{Carrier Type Comparisons}
+
+Figure~\ref{fig:fig2} compares the distributions of six key performance indicators across Legacy, Low-Cost, Cargo, and Regional carrier types using violin plots with inner quartile lines.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig2_carrier_kpis.png}
+    \caption{Financial and operational KPIs by carrier type. Violin plots show the full distribution of each metric across carrier-quarter observations, with inner quartile markers. Carrier types: Legacy (blue), Low-Cost (red), Cargo (orange), Regional (green).}
+    \label{fig:fig2}
+\end{figure}
+
+Several differences across carrier types are notable. Cost and revenue per passenger are highest for Cargo carriers, reflecting the fundamentally different economic structure of air freight operations compared to passenger service \cite{caves1984}. Among passenger-carrying carriers, Legacy airlines show greater dispersion in operating margin than Low-Cost carriers, with wider tails in both directions. Low-Cost carriers cluster closer to zero margins on average, consistent with literature documenting the competitive cost discipline of this business model \cite{gillen2004}. Regional carriers exhibit the lowest net incomes and weakest margins on average, often reflecting the thin-margin subcontract relationships they maintain with major legacy partners.
+
+On-time rate distributions show Legacy carriers performing somewhat better than Low-Cost carriers in median on-time rate, consistent with the hub scheduling advantages that legacy networks can provide when demand is stable \cite{mayer2002}. However, Legacy carriers also exhibit higher cancellation rate variability, driven by the larger network surface area exposed to disruption cascades. These differences highlight that carrier type captures meaningful variation in the cost-performance relationship, motivating the subgroup analyses that follow.
+
+\section{COVID-19 Period Analysis}
+
+Figure~\ref{fig:fig3} displays boxplots for total passengers, operating margin, net margin, on-time rate, cancellation rate, and average arrival delay, disaggregated by period: pre-COVID, COVID, and post-COVID.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig3_covid_periods.png}
+    \caption{Impact of COVID-19 across key metrics. Boxplots compare pre-COVID (green), COVID (red), and post-COVID (blue) periods across six performance indicators.}
+    \label{fig:fig3}
+\end{figure}
+
+The COVID period is characterized by the most extreme values across nearly every metric. Passenger volumes collapsed to their lowest levels, while operating and net margins deteriorated sharply. The interquartile range for margins is substantially wider during COVID, reflecting divergent outcomes across carrier types as different business models exhibited different resilience to the demand shock \cite{fontanet2022}.
+
+Notably, the on-time rate improved during COVID relative to the pre-COVID baseline, and the cancellation rate---despite COVID-era mass cancellations---shows a lower median than the pre-COVID period for the quarters that did have active service. This reflects the reduced schedule density during active COVID operations, consistent with the theoretical prediction that hub congestion and late-aircraft cascades diminish when total flight counts decline \cite{mayer2002}. Average arrival delay per delayed flight also decreased during COVID, reinforcing this interpretation.
+
+In the post-COVID period, passengers, revenues, and expenses recovered, while margins remained compressed relative to pre-COVID levels. This is consistent with cost recovery lagging demand recovery, as airlines rebuilt fleets, rehired staff, and faced elevated fuel and labor costs. Cancellation rates returned toward pre-COVID levels as schedules normalized and weather-related disruptions reasserted themselves.
+
+\section{Delay Cause Breakdown by Carrier Type}
+
+Figure~\ref{fig:fig4} presents a stacked bar chart of the proportional composition of total arrival delay minutes by cause (carrier, weather, NAS, and late aircraft) for each carrier type with available OTP data.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{fig4_delay_causes.png}
+    \caption{Delay cause composition by carrier type. Bars represent the share of total delay minutes attributable to carrier, weather, NAS, and late aircraft causes, averaged across matched carrier-quarter observations.}
+    \label{fig:fig4}
+\end{figure}
+
+Across all three carrier types, late aircraft delays constitute the largest single share of total delay minutes: approximately 36\% for Legacy, 37\% for Low-Cost, and 39\% for Regional carriers. This is consistent with the network cascade mechanism described in prior work \cite{mayer2002}, where a delay early in a rotation propagates through subsequent legs as the same aircraft is reused across the day. Carrier-caused delays are highest for Legacy carriers (40\%), compared to approximately 28\% for Low-Cost carriers, suggesting that operational decisions within the legacy hub-and-spoke scheduling model introduce more controllable delay than the simpler point-to-point structures used by low-cost operators \cite{lee2023}.
+
+NAS (National Airspace System) delays, reflecting ATC and airport congestion, are highest for Low-Cost carriers (30\%) relative to Legacy (20\%) and Regional (21\%). This may reflect the concentration of low-cost carrier operations at busy secondary airports that experience high traffic relative to available ATC resources. Weather delays are uniformly low across all carrier types (4--8\%), consistent with the fact that weather affects all carriers similarly and is outside any carrier's operational control. These differences in delay cause composition provide important context for interpreting on-time rate comparisons across carrier types.
+
+\section{Cost Efficiency vs.\ Service Quality}
+
+Figure~\ref{fig:fig5} plots cost per passenger against on-time rate and cancellation rate separately for each carrier type, using a scatterplot limited to cost-per-passenger values between \$0 and \$500.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig5_cost_vs_service.png}
+    \caption{Cost efficiency vs.\ service quality by carrier type. Each point represents a carrier-quarter observation. Left panel: on-time rate vs.\ cost per passenger. Right panel: cancellation rate vs.\ cost per passenger.}
+    \label{fig:fig5}
+\end{figure}
+
+The scatter plots reveal no strong linear relationship between cost per passenger and either on-time rate or cancellation rate. Points are broadly dispersed at all cost levels, indicating that carriers with similar operating costs can achieve substantially different service quality outcomes. This finding is consistent with prior arguments that on-time performance is shaped as much by network structure and scheduling strategy as by cost discipline \cite{mayer2002}, and that disruption mitigation depends on investment and operational architecture rather than unit cost alone \cite{lee2023}.
+
+Legacy carriers, concentrated at higher cost-per-passenger values, achieve a wide range of on-time rates without a clear upward or downward slope. Low-Cost carriers cluster at the lower cost range and similarly span a broad range of on-time performance. Regional carriers show the widest spread in cancellation rate at low cost levels, possibly reflecting the thin operational slack built into subcontract regional schedules. These results suggest that the relationship between cost efficiency and service quality is mediated by carrier-specific factors rather than a simple cost trade-off, which has important implications for the modeling approach in the next phase of the project.
+
+\section{Legacy vs.\ Low-Cost Carriers: Quarterly Trends}
+
+Figure~\ref{fig:fig6} traces quarterly trajectories for Legacy and Low-Cost carriers from 2016 through 2024 across four metrics: average operating margin, average cost per passenger, average net income, and average on-time rate.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig6_quarterly_trends.png}
+    \caption{Legacy vs.\ Low-Cost carriers: quarterly trends, 2016--2024. Each panel traces the quarterly average of the labeled metric for Legacy (blue) and Low-Cost (red) carriers. The shaded region indicates the COVID-19 period.}
+    \label{fig:fig6}
+\end{figure}
+
+Prior to COVID, both carrier types operated with operating margins near zero and comparable cost-per-passenger profiles, consistent with the competitive pressures of the U.S. domestic market \cite{borenstein1992}. During COVID, both carrier types experienced sharp margin deterioration and net income losses, but Legacy carriers experienced more severe losses in absolute terms. Prior research finds that low-cost and ultra-low-cost carriers showed stronger short-run financial resilience during the pandemic due to leaner cost structures and simpler network architectures \cite{fontanet2022}.
+
+The recovery trajectory post-2021 also differs between groups. Low-Cost carriers show a faster return toward positive margins and higher on-time rates in 2022, while Legacy carriers recover more slowly. However, by 2023--2024, both groups show evidence of margin compression as fuel and labor costs rose, complicating the post-COVID recovery. The cost-per-passenger trajectory shows a sharp spike for both groups during COVID, driven by fixed cost spreading over dramatically fewer passengers, before normalizing post-2021 as volume recovered \cite{gudmundsson2021}.
+
+\section{Correlation Heatmap}
+
+Figure~\ref{fig:fig7} presents a full correlation heatmap across 17 operational, financial, and service quality variables at the carrier-quarter level.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig7_correlation.png}
+    \caption{Correlation heatmap across operational, financial, and service quality metrics. Pearson correlation coefficients are annotated within each cell; color scale runs from strong negative (blue) to strong positive (red).}
+    \label{fig:fig7}
+\end{figure}
+
+The most striking finding is the near-perfect positive correlation between operating revenues and operating expenses ($r = 0.97$), indicating that costs and revenues scale together almost one-for-one across carrier-quarters. This is expected given that larger carriers generate more revenue and incur more costs, but it also creates potential multicollinearity challenges in regression modeling.
+
+Passengers and distance are strongly positively correlated ($r = 0.86$), as carriers that fly longer routes tend to carry larger passenger volumes. Operating revenues are moderately positively correlated with passengers ($r = 0.44$) and distance ($r = 0.41$), while operating expenses follow a nearly identical pattern. On-time rate shows a moderate negative correlation with cancellation rate ($r = -0.57$) and a weaker negative correlation with average arrival delay, as expected. Neither on-time rate nor cancellation rate shows a strong linear correlation with cost-per-passenger or operating margin at the carrier-quarter level, reinforcing the scatter plot finding in Section~8. These correlation patterns inform the feature selection strategy for the predictive model described in Section~11.
+
+\section{Predictive Modeling: Random Forest for Net Income}
+
+Figure~\ref{fig:fig8} displays the top 15 feature importances from a Random Forest regressor trained to predict quarterly net income using 24 operational, financial, and service quality predictors. The model was estimated on the 1,825 carrier-quarter observations with non-null net income, using an 80/20 train-test split and 300 trees.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{fig8_feature_importance.png}
+    \caption{Top 15 feature importances from a Random Forest regressor predicting quarterly net income. Importance is measured by mean decrease in impurity across all trees.}
+    \label{fig:fig8}
+\end{figure}
+
+The model achieved an out-of-sample $R^2$ of 0.81 and an RMSE of approximately \$114,906K, indicating strong predictive performance for the net income prediction task. The dominant feature by a substantial margin is operating expenses (\texttt{OP\_EXPENSES}), followed by depreciation and amortization (\texttt{DEPREC\_AMORT}) and cost per passenger. Route count and freight volume also appear among the top features, reflecting the network scale effects documented in the cost driver literature \cite{zuidberg2014}.
+
+This feature importance profile should be interpreted cautiously. Because operating revenues and expenses are near-perfect correlates of net income by construction, the high importance of expense variables reflects accounting identity rather than a causal mechanism. This motivates the exclusion or transformation of these variables in future regression analyses focused on isolating the relationship between operational structure and profitability. On-time rate appears among the top ten features, suggesting a modest independent predictive contribution to net income beyond what is captured by cost and scale variables alone.
+
+\section{Clustering: Elbow Method}
+
+Figure~\ref{fig:fig9} shows the elbow curve from a K-Means clustering analysis applied to 18 standardized operational, financial, and service quality features across the 1,825 carrier-quarter observations with complete financial data.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{fig9_elbow.png}
+    \caption{Elbow method for optimal cluster determination. Inertia (within-cluster sum of squares) is plotted against the number of clusters $k$ from 2 to 10.}
+    \label{fig:fig9}
+\end{figure}
+
+The elbow curve decreases steeply from $k = 2$ to $k = 3$, with diminishing marginal returns thereafter. This suggests that approximately three to four clusters capture the primary structure in the data, likely corresponding to groupings that roughly align with the pre-defined carrier type categories (Legacy, Low-Cost, Cargo/Regional) but potentially reflect cross-cutting distinctions based on period or scale. Formal cluster assignments and cluster profiling will be conducted in the modeling phase of the project to assess whether data-driven groupings reproduce or refine the theoretical carrier-type classification. K-Means clustering has been used in prior airline performance studies to identify airlines with similar efficiency profiles across multiple operational dimensions \cite{kaya2023}.
+
+\section{Implications and Next Steps}
+
+The exploratory analysis reveals several findings with implications for the modeling phase of the project and for understanding airline cost-performance relationships more broadly.
+
+First, the absence of a clear linear relationship between cost per passenger and on-time rate or cancellation rate suggests that simple cost-minimization strategies do not mechanically improve or degrade service quality. This motivates the use of multivariate regression approaches that control for carrier type, period, and network scale when estimating the cost-performance relationship. It also reinforces prior arguments that airline efficiency analysis must account for firm heterogeneity rather than treating all carriers as comparable units \cite{li2025}.
+
+Second, the COVID period provides a clear quasi-experimental disruption that differentially affected carrier types. Legacy carriers experienced deeper losses and slower recovery than low-cost carriers, consistent with the resilience advantage of leaner cost structures under demand shocks \cite{fontanet2022}. The improvement in on-time rates during COVID, driven by reduced schedule density, highlights that service quality metrics are partly endogenous to network decisions and should not be interpreted as fixed carrier characteristics.
+
+Third, the near-perfect collinearity between revenues and expenses, and the dominance of expense variables in the Random Forest model, signals a need to carefully design regression specifications that avoid conflating accounting identities with causal relationships. Future models will focus on unit cost measures, utilization ratios, and service quality outcomes as the primary dependent and independent variables.
+
+In subsequent phases, the team will estimate linear regression models for operating margin and delay outcomes, conduct formal cluster profiling to compare data-driven segments with theoretical carrier types, and produce a carrier-level summary dashboard. Additional analysis will examine subperiod heterogeneity in the cost-performance relationship and assess whether the post-COVID period represents a structural break from pre-pandemic patterns.
+
+\bibliographystyle{abbrv}
+\bibliography{refs}
+
+\end{document}
