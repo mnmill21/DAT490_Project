@@ -1,0 +1,325 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{fullpage}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage[labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{array}
+\usepackage{microtype}
+\usepackage{adjustbox}
+
+\setlength{\parindent}{.25in}
+\setlength{\parskip}{8pt}
+
+\begin{document}
+
+\title{Analysis of U.S. Airline Cost Efficiency and Operational Performance \\
+\large Rough Draft}
+\author{Jood Alaswad, Arnol Garcia, Marissa Miller, Brandon Thacker}
+\date{\today}
+\maketitle
+
+\tableofcontents
+\newpage
+\setcounter{page}{1}
+
+\addcontentsline{toc}{section}{Abstract}
+\begin{abstract}
+Airline cost efficiency is a central issue in the U.S. domestic airline industry, where carriers must balance cost control, operational reliability, and competitive service quality. In recent years, these trade-offs have become even more important as airlines have faced major disruptions, shifting demand, and changing business conditions. This study examines how airline cost efficiency relates to operational performance across U.S. domestic carriers, with particular attention to differences across airline business models and across pre-COVID, COVID, and post-COVID periods. Using Bureau of Transportation Statistics T-100, Form 41 Schedule P-1.2, and On-Time Performance data, the project constructs a merged carrier-quarter dataset of 4,440 observations combining operational, financial, and service-related measures from 2016 through 2024.\\
+\indent The results show that the COVID-19 period functioned as a major structural break in passenger traffic, revenues, expenses, and average net income, with average quarterly net income falling to roughly $-\$140{,}000$K per carrier-quarter at the 2020 trough. Legacy carriers consistently operated at three to four times the route-level utilization of Low-Cost and Regional carriers, while business-model differences were also visible in financial dispersion, delay-cause composition, and post-COVID recovery patterns. At the same time, lower cost per passenger did not map cleanly onto stronger service performance, suggesting that cost minimization alone does not explain reliability outcomes. A four-cluster K-means solution further indicated that operational profiles cut across the standard carrier-type taxonomy, and a recovery analysis showed that no carrier in the sample fully recovered its pre-COVID financial performance.\\
+\indent Overall, the findings suggest that airline performance depends not only on leaner cost structures, but also on network design, traffic density, and operational resilience. By integrating traffic, financial, and service datasets into a single carrier-quarter framework, this project provides a broader view of how airline business models perform under both normal and disrupted operating conditions. Future work should extend the analysis with formal regression results that include period-interaction terms and examine how changing market conditions continue to reshape the relationship between cost efficiency and long-run resilience.
+\end{abstract}
+
+\section{Introduction and Background}
+\subsection{Introduction}
+The United States airline industry operates in a highly competitive and cost-sensitive environment, where firms must continuously balance operational efficiency, cost control, and service performance. Airlines face persistent pressure from fluctuating fuel prices, labor costs, and cyclical demand, requiring strategic decisions that optimize both financial and operational outcomes \cite{Barbot2008,Gillen2005,Fan2016}. While cost minimization is often treated as a central objective, its relationship with operational performance remains complex and not fully understood. Lower unit costs do not necessarily translate into more reliable schedules, and high service quality does not necessarily depend on the leanest cost structure. The relationship between cost and performance is mediated by network design, fleet composition, and the broader business model under which a carrier operates.\\
+\indent A key tension in the industry lies in the differing advantages of airline business models. Low-cost carriers are commonly perceived as more efficient due to streamlined operations, simplified fleets, and lower cost structures, whereas legacy carriers compete through broader networks, hub connectivity, and higher-quality service offerings \cite{Barbot2008,Fan2016,Gillen2005}. Regional carriers, often operating under capacity-purchase agreements with major partners, occupy a separate niche entirely, while cargo carriers operate under fundamentally different unit economics that make passenger-based metrics misleading. These structural differences raise an important question: whether cost-reduction strategies enhance operational performance, or whether they introduce trade-offs that negatively affect service quality. The answer matters not only for airline managers and investors, but also for policymakers and travelers who depend on reliable air transportation.\\
+\indent Prior research demonstrates that airline efficiency is shaped by multiple operational and strategic factors, including aircraft utilization, load factor, labor productivity, and network design \cite{Banker1993,Caves1984,Zuidberg2014}. At the same time, performance indicators such as delays, cancellations, and reliability introduce additional complexity, as they may reflect both inefficiencies and intentional network design choices \cite{Lee2023,MayerSinai2002}. A delay caused by hub congestion, for example, may be the rational byproduct of a network strategy that maximizes connectivity, whereas a delay caused by a missed crew connection reflects a different kind of operational vulnerability. Furthermore, evolving revenue structures, particularly the growth of ancillary services such as baggage fees, seat selection, and loyalty program monetization, have expanded the concept of airline performance beyond traditional measures such as ticket pricing and passenger volume \cite{Moghadasnian2025,Zhou2020}.\\
+\indent The COVID-19 pandemic introduced a further layer of complexity. The sudden collapse in demand in 2020, the partial recovery during 2021, and the post-2022 normalization period each represent fundamentally different operating environments. Existing literature suggests that COVID functioned as a structural break in airline economics rather than a temporary deviation \cite{FontanetPerez2022,Gudmundsson2021}, and that different business models exhibited different degrees of resilience to the shock. This makes the period particularly valuable for studying how cost structure and operational performance interact under both stable and disrupted conditions.\\
+\indent Given these dynamics, this study examines the relationship between airline cost efficiency and operational performance across U.S. domestic carriers from 2016 through 2024. It builds on existing literature to evaluate how business models, cost structures, and service metrics interact, while also considering how these relationships evolved across pre-COVID, COVID, and post-COVID periods \cite{FontanetPerez2022,Gudmundsson2021}. The analysis aims to determine whether cost efficiency and service quality function as complementary objectives or reflect inherent trade-offs within the airline industry.
+
+\subsection{Background}
+The modern airline industry has been fundamentally shaped by deregulation, liberalization, and increasing competition, particularly following the United States Airline Deregulation Act of 1978. Before deregulation, the Civil Aeronautics Board controlled fares, routes, and market entry, producing a relatively stable but inefficient system in which carriers competed primarily on service quality rather than price. Deregulation intensified competitive pressures and forced airlines to prioritize cost efficiency while maintaining service quality and network coverage \cite{Borenstein1992,Gillen2005}. This shift also enabled the rapid emergence of low-cost carriers, which introduced alternative operating strategies that challenged traditional airline models and reshaped the competitive landscape over the following decades.\\
+\indent Airline business models represent a central component of industry structure. Low-cost carriers typically operate low-complexity networks with high aircraft utilization, simplified single-fleet types, dense seating configurations, and limited service offerings. In contrast, legacy carriers rely on hub-and-spoke systems with broader connectivity, mixed fleets, and differentiated service classes \cite{Barbot2008,Gillen2005,OConnell2005}. Regional carriers operate yet another model, typically flying smaller aircraft on shorter routes under contracts with major partners, while cargo carriers focus on freight rather than passenger transport. These structural differences influence how airlines allocate resources, manage capacity, and pursue efficiency, making business model distinctions critical to understanding cost performance.\\
+\indent Prior research finds that cost efficiency is closely tied to operational factors such as traffic density, aircraft utilization, and network design. In particular, economies of density, rather than economies of scale alone, play a significant role in reducing airline costs \cite{Caves1984,Zuidberg2014}. The intuition is that adding passengers to an existing route is less costly than adding routes themselves, which means that carriers concentrating traffic on dense corridors enjoy a structural cost advantage that smaller or more dispersed operators cannot easily replicate. Historical empirical evidence suggests that low-cost carriers are generally more efficient than full-service carriers, although this relationship is influenced by geography, labor productivity, and firm size \cite{Barbot2008}. More recent studies emphasize the importance of accounting for heterogeneity across airlines, cautioning against treating carriers as homogeneous entities in efficiency analysis \cite{Li2025}.\\
+\indent Operational performance adds another layer of complexity. Airlines regularly experience disruptions such as delays and cancellations, which affect reliability and customer satisfaction. However, not all delays are indicative of inefficiency. Congestion at hub airports can emerge as a rational outcome of network optimization, where airlines cluster flights to maximize connectivity \cite{MayerSinai2002}. The Bureau of Transportation Statistics categorizes delays into carrier-caused, weather, National Airspace System (NAS), security, and late-aircraft causes, and the proportional mix of these categories varies meaningfully across business models. Late-aircraft delay, in particular, reflects cascading effects through the day as a single delayed flight propagates through subsequent legs of the same aircraft's rotation. This means that trade-offs between efficiency and service performance may be inherent to airline operations rather than solely the result of poor management. Additional research highlights the importance of disruption mitigation and operational resilience, emphasizing the balance between minimizing costs and maintaining service reliability \cite{Lee2023}.\\
+\indent Airline cost and revenue structures have also evolved significantly over time. Increasing reliance on ancillary revenue streams, such as baggage fees, seat selection, and credit card partnerships, has expanded how airline performance is evaluated \cite{Zhou2020}. Some carriers now generate a substantial portion of their profit from these non-ticket revenue sources, blurring the line between low-cost and full-service models. As a result, understanding airline efficiency requires a broader perspective that incorporates cost structures, revenue strategies, and operational outcomes simultaneously.\\
+\indent Methodologically, prior airline efficiency studies have employed a range of approaches. Early empirical work relied on production-function and cost-function estimation to isolate the contributions of scale, density, and input prices to airline costs \cite{Banker1993,Caves1984}. More recent studies have incorporated data envelopment analysis, stochastic frontier methods, and meta-frontier approaches to compare efficiency across heterogeneous carriers \cite{Li2025,Nguyen2022}. However, much of this literature focuses on a single performance dimension at a time, such as financial outcomes, operational metrics, or service quality, rather than integrating all three into a unified framework. The COVID-19 disruption created a new opportunity to study these relationships under stressed conditions, but few studies to date have combined operational, financial, and service-quality data across the pre-COVID, COVID, and post-COVID periods at the carrier-quarter level. \\
+\indent This project contributes to the existing literature by combining operational traffic measures, financial performance variables, and service-quality outcomes into a single carrier-quarter framework. Rather than evaluating airline efficiency only through costs, profitability, or reliability in isolation, the analysis examines how these dimensions interact across business models and across the COVID-19 disruption period. This integrated structure allows the project to compare not only which carriers appear more cost efficient, but also whether those cost advantages correspond to stronger utilization, better service reliability, and greater resilience after a major industry shock.
+
+\subsection{Literature-Derived Framework}
+
+The literature on airline cost efficiency suggests that airline performance should be evaluated as a multidimensional problem rather than as a simple comparison of costs across carriers. Prior studies emphasize that cost performance is shaped by economies of density, aircraft utilization, labor productivity, route structure, and business model differences \cite{Banker1993,Barbot2008,Caves1984,Zuidberg2014}. This means that lower costs may reflect genuine operating efficiency, but they may also reflect differences in network design, passenger volume, route concentration, or the types of markets served. As a result, this project treats cost efficiency as one component of airline performance rather than as a complete measure of performance by itself. \\
+\indent A second theme in the literature is that service quality and operational reliability are not always directly aligned with cost minimization. Delays and cancellations may result from internal carrier operations, weather, airspace constraints, late-arriving aircraft, or congestion within hub-and-spoke systems \cite{Lee2023,MayerSinai2002}. Because these delay sources reflect different operational mechanisms, a single reliability metric cannot fully explain service performance. This motivates the project's use of multiple service indicators, including on-time rate, cancellation rate, average arrival delay, and delay-cause composition. \\
+\indent A third theme is that airline business models create structurally different operating conditions. Low-Cost carriers are often associated with simplified fleets, higher aircraft utilization, and lower unit costs, while Legacy carriers rely on broader networks, hub connectivity, and differentiated service offerings \cite{GillenLall2004,Gillen2005,OConnell2005}. Regional and Cargo carriers differ even more sharply, since Regional carriers often operate under partner agreements and Cargo carriers follow freight-centered economics that make passenger-based ratios difficult to interpret. For this reason, this project does not assume that all carriers can be compared using a single efficiency benchmark. \\
+\indent Finally, the COVID-19 pandemic changed the operating environment in a way that makes period-based analysis necessary. Prior research suggests that the pandemic disrupted passenger demand, revenue structures, route networks, and financial stability across the airline industry \cite{FontanetPerez2022,Kaya2023,Gudmundsson2021}. This project therefore separates the analysis into pre-COVID, COVID, and post-COVID periods to examine whether the relationship between cost efficiency and operational performance remained stable or changed under disruption.
+
+\subsection{Project Plan and Research Questions}
+This project addresses one overarching question and four specific sub-questions, each linked to a distinct analytical approach.
+
+\textbf{Main question:} \textit{What is the relationship between airline cost efficiency and operational performance, and are there trade-offs between cost minimization and service quality?}
+
+The four sub-questions that structure the analysis are:
+\begin{enumerate}
+    \item How do different cost structures relate to operational efficiency measures such as passengers per route and route utilization?
+    \item Is there a relationship between operating costs and service performance metrics such as delays, reliability, and cancellations?
+    \item How do Low-Cost, Legacy, Regional, and Cargo carriers differ in their balance between cost, efficiency, and performance?
+    \item How did these relationships change across pre-COVID, COVID, and post-COVID periods?
+\end{enumerate}
+
+To address these questions, the project constructs a merged carrier-quarter dataset from three Bureau of Transportation Statistics sources: T-100 Domestic Segment, Form 41 Schedule P-1.2, and On-Time Performance. The dataset spans 2016 through 2024. The analysis proceeds in three stages: descriptive and exploratory analysis to characterize the data and identify patterns; comparative analysis across carrier types and periods to evaluate business-model differences; and inferential and unsupervised methods (regression, Random Forest, K-means clustering) to formalize relationships and identify operating profiles that may cut across the standard carrier-type taxonomy. Each method is mapped to one or more of the sub-questions above, and results are interpreted in the context of the existing literature on airline cost economics, network density, and disruption dynamics.
+
+\section{Methods}
+\subsection{Data Sources, Preparation, and Cleaning}
+This project is based on three datasets from the Bureau of Transportation Statistics (BTS), each capturing a distinct dimension of U.S. domestic airline operations and integrated at the carrier-quarter level.\\
+\indent The \textbf{T-100 Domestic Segment} dataset \cite{bts2026t100} provides route-level traffic information, including the number of passengers, freight pounds, and mail enplaned, as well as the distance between origin and destination airports. The raw extract contained 2,193,983 segment-level rows. A route key was created for each observation using origin and destination airport identifiers to determine how many unique routes a carrier performs. Numerical data were coerced into numeric type for aggregation, and route-level observations were aggregated to the carrier-quarter level using a composite match key formed from a carrier's unique code, year, and quarter. The aggregated T-100 dataset contained 4,440 carrier-quarter observations and served as the operational base for all subsequent merges.\\
+\indent The \textbf{Form 41 Schedule P-1.2} financial dataset \cite{bts2026f41} contains quarterly profit-and-loss statements for large U.S. carriers, with 3,678 raw rows covering net income, operating revenues, operating expenses, and itemized cost categories such as flying operations, maintenance, depreciation, and general administration. Form 41 data were processed and aggregated similarly to the T-100 data, yielding 1,876 carrier-quarter financial observations. After joining with the T-100 base, 1,825 carrier-quarter observations contained matched financial information.\\
+\indent The \textbf{On-Time Performance (OTP)} dataset \cite{bts2026otp}, sourced from Kaggle \cite{kaggle_bts2026otp} but derived from BTS records, details monthly arrival delay information broken down by airline and airport. The full raw file contained 398,233 monthly airport-carrier observations from 2003 through 2025. After filtering to the 2016--2024 analytical window, the working OTP dataset contained 188,419 observations. Certain variables in the BTS source were not preserved in the Kaggle version, most notably unique carrier identifiers. Because general carrier codes can be reused by unrelated carriers over time and because carrier names follow inconsistent conventions, an as-is merge would have produced carrier mismatches. To address this, carrier identifiers were standardized according to the unique carrier names and codes established by BTS, and a leading-whitespace discrepancy in the carrier-code field was resolved before joining. The cleaned and aggregated OTP data yielded 739 carrier-quarter observations after joining with the T-100 base.\\
+\indent Once each dataset was cleaned and individually aggregated, all three were merged into a single dataset using a left join with T-100 as the base to preserve all operational records. This produced a final analytic dataset of 4,440 carrier-quarter rows, of which 681 carry observations from all three sources simultaneously. Observations were categorized as \textit{Pre-COVID} (2016--2019), \textit{COVID} (2020--2021), or \textit{Post-COVID} (2022--2024). Carriers were classified into four main groups: \textit{Legacy}, \textit{Low-Cost}, \textit{Cargo}, and \textit{Regional}. These classifications were based on industry classification definitions; carriers that did not clearly align with any one type were assigned to ``other.'' Cargo-only operators are largely absent from the OTP data, so service-quality findings should be interpreted with that limitation in mind.\\
+\indent Finally, multiple variables were engineered to create interpretable performance metrics. These include operating margin, net margin, cost per passenger, revenue per passenger, profit per passenger, passengers per route, average distance per route, freight per route, on-time rate, cancellation rate, average arrival delay in minutes, and proportional delay-cause measures (carrier, weather, NAS, late aircraft). Table~\ref{tab:datasets} summarizes the cleaning and aggregation pipeline.
+
+\begin{table}[H]
+\centering
+\caption{Working dataset shapes before and after cleaning and aggregation}
+\label{tab:datasets}
+\begin{tabular}{lrr}
+\toprule
+Dataset & Raw Rows $\times$ Cols & Cleaned/Aggregated Rows $\times$ Cols \\
+\midrule
+T-100 Domestic Segment & 2{,}193{,}983 $\times$ 40 & 4{,}440 $\times$ 18 \\
+Form 41 Schedule P-1.2 & 3{,}678 $\times$ 54 & 1{,}876 $\times$ 48 \\
+On-Time Performance & 188{,}419 $\times$ 25 & 739 $\times$ 20 \\
+\midrule
+\textbf{Final merged dataset} & --- & \textbf{4{,}440 $\times$ 107} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Exploratory Data Analysis and Visualization}
+After cleaning and merging the datasets, exploratory data analysis was used to understand the structure of the carrier-quarter dataset and identify patterns that motivate the modeling stage. Descriptive statistics were calculated for key financial, operational, and service variables, with attention to the distribution of passengers, freight, route count, operating revenue, operating expenses, net income, operating margin, cost per passenger, on-time rate, and cancellation rate.\\
+\indent A range of visualizations was used to examine structure and relationships in the data. Yearly trend plots tracked passenger traffic, freight, revenues, expenses, net income, and on-time rate over time. Because the COVID-19 pandemic represented a major disruption, the period was divided into pre-COVID (2016--2019), COVID (2020--2021), and post-COVID (2022--2024) for comparison. Boxplots and violin plots were used to compare cost, margin, and service-performance measures across airline business models. Scatterplots examined whether lower cost per passenger was associated with stronger service outcomes, and a correlation heatmap summarized pairwise relationships among 17 operational, financial, and service variables.\\
+\indent A carrier-level recovery map was also constructed to compare changes in operating margin and changes in on-time rate between the pre-COVID and post-COVID periods, allowing direct visualization of whether financial and operational recovery moved together. These exploratory steps were not used as final evidence on their own, but to identify broad patterns, highlight differences across carrier types and periods, and motivate the formal statistical and machine-learning methods described below.
+
+\subsection{Statistical and Inferential Analysis}
+To address the project's inferential component, ordinary least squares regression was selected as the primary statistical framework. This was preferred over isolated group-mean tests because the research questions involve multiple predictors, multiple outcomes, and important subgroup differences across carrier type and COVID period. The main goal of the regression analysis is to estimate whether cost structure, utilization, and business-model indicators are associated with operational and service outcomes while accounting for time period and network structure.\\
+\indent For Sub-Question 1, the project uses average passengers per route as a proxy for route-level utilization, since the T-100 segment extract does not include seats or departures performed and therefore does not permit direct calculation of load factor. The baseline regression specification is:
+
+\begin{align*}
+\text{PassengersPerRoute}_{it} =\;& \beta_0
++ \beta_1 \text{CostPerPassenger}_{it}
++ \beta_2 \text{AvgDistancePerRoute}_{it} \\
+&+ \beta_3 \text{RouteCount}_{it}
++ \beta_4 \text{CarrierType}_{i}
++ \beta_5 \text{Period}_{t}
++ \epsilon_{it}
+\end{align*}
+
+For Sub-Question 2, service outcomes are modeled using on-time rate and cancellation rate as dependent variables. Baseline specifications include:
+
+\begin{align*}
+\text{OnTimeRate}_{it} =\;& \beta_0
++ \beta_1 \text{CostPerPassenger}_{it}
++ \beta_2 \text{CarrierType}_{i} \\
+&+ \beta_3 \text{Period}_{t}
++ \beta_4 \text{AvgDistancePerRoute}_{it}
++ \epsilon_{it}
+\end{align*}
+
+\begin{align*}
+\text{CancellationRate}_{it} =\;& \beta_0
++ \beta_1 \text{CostPerPassenger}_{it}
++ \beta_2 \text{CarrierType}_{i} \\
+&+ \beta_3 \text{Period}_{t}
++ \beta_4 \text{AvgDistancePerRoute}_{it}
++ \epsilon_{it}
+\end{align*}
+
+These models are intended to estimate associations rather than establish causal effects. Final specifications will include period-interacted terms to test whether cost-performance relationships differ across pre-COVID, COVID, and post-COVID environments. Coefficient direction and magnitude are interpreted alongside the exploratory findings.
+
+\subsection{Machine Learning and Unsupervised Analysis}
+The regression models are used because the main research questions concern associations between cost measures, utilization, carrier type, COVID period, and service outcomes. These models provide interpretable coefficient estimates that can be compared across outcomes and periods. Random Forest is used as a supplementary predictive method because the relationship between financial performance and operating variables may be nonlinear and may involve interactions that are not captured by simple linear specifications. K-means clustering is used to evaluate whether carrier-quarter observations naturally group into operating profiles that align with, or cut across, the manually assigned business-model categories. In addition to regression-based analysis, the project uses Random Forest and K-means clustering as supplementary methods. A Random Forest regressor was applied to the 1,825 carrier-quarter observations with non-null net income, using 24 operational, financial, and service-quality predictors and an 80/20 train-test split with 300 trees. The model is used to rank feature importance and identify nonlinear patterns that may not be captured by linear specifications. Because some financial variables (notably operating expenses) are closely related to net income by construction, Random Forest results are interpreted cautiously and used primarily for exploratory prioritization rather than causal inference.\\
+\indent K-means clustering was used to identify recurring airline operating profiles based on financial, operational, and service variables. Before clustering, all features were standardized so that large-scale revenue or passenger values would not dominate the distance metric. The elbow method guided the selection of the number of clusters, and a four-cluster solution was retained based on the observed inflection in the inertia curve. The resulting cluster profiles were compared against the pre-defined carrier-type categories to determine whether airlines naturally separate into distinct operating groups beyond the standard taxonomy.\\
+\indent Table~\ref{tab:methods} summarizes how each sub-question maps to its primary analytical method and outcome variable.
+
+\begin{table}[H]
+\centering
+\caption{Mapping of research sub-questions to methods and outcome variables}
+\label{tab:methods}
+\begin{tabular}{p{3.5cm} p{3.5cm} p{3.5cm} p{3.5cm}}
+\toprule
+Sub-Question & Outcome Variable(s) & Primary Method & Supporting Method \\
+\midrule
+Q1: Cost structure $\rightarrow$ efficiency & Passengers per route & OLS regression & Group comparisons \\
+Q2: Costs $\rightarrow$ service performance & On-time rate, cancellation rate & OLS regression & Scatterplots, correlation \\
+Q3: Business-model differences & Carrier-type profiles & Group comparisons & K-means clustering \\
+Q4: COVID-period shifts & All of the above by period & Period-interacted regression & Boxplots, recovery map \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Together, these methods allow the project to combine descriptive analysis, inferential statistics, and machine learning in a way that aligns with the project's research questions and the broader goals of the capstone.
+
+\section{Results}
+
+\subsection{Merged Sample Coverage and Descriptive Results}
+The final merged airline dataset was constructed at the carrier-quarter level using T-100 Domestic Segment, Form 41 Schedule P-1.2, and On-Time Performance data. The T-100 base contained 4,440 carrier-quarter observations. Of these, 1,825 matched Form 41 financial observations, 739 matched OTP service observations, and 681 matched all three datasets simultaneously (Table~\ref{tab:coverage}). These coverage differences are important because they determine which analyses can be conducted on the full operational sample and which must rely on smaller matched subsets. Because the fully matched sample is much smaller than the T-100 operational base, the strongest claims in this study should be interpreted as evidence from the matched financial-service subset rather than as universal claims about all U.S. domestic carriers. This is especially important for service-quality results, since the OTP-matched subset is concentrated among passenger-carrying carriers and excludes many cargo-focused observations. For this reason, the analysis distinguishes between broad operational patterns in the full T-100 sample and narrower financial-service relationships in the matched subset.
+
+\begin{table}[H]
+\centering
+\caption{Merged Sample Coverage}
+\label{tab:coverage}
+\begin{tabular}{lr}
+\toprule
+Sample Component & Carrier-Quarter Rows \\
+\midrule
+T-100 base sample & 4{,}440 \\
+Matched with Form 41 & 1{,}825 \\
+Matched with OTP & 739 \\
+Matched across all three datasets & 681 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Descriptive statistics show that the merged dataset is highly heterogeneous and right-skewed. Mean passenger volume is approximately 1.45 million per carrier-quarter, with a standard deviation of 5.4 million, indicating that a small number of large carriers dominate aggregate traffic. Operating expenses exceed operating revenues on average (means of \$322M and \$278M respectively), producing a mean net income of approximately $-\$37$ million per carrier-quarter, while the median operating margin is $-0.004$. Cost per passenger and revenue per passenger both have mean values around \$360 with standard deviations exceeding \$5{,}400, reflecting the influence of cargo carriers and ultra-regional operators with very small passenger denominators. The on-time rate has a mean of 0.82 and a standard deviation of 0.07, while the cancellation rate has a mean of 0.03 with a strong right tail. These distributions confirm that the airline industry cannot be treated as homogeneous and motivate the use of distributional comparisons and subgroup analyses throughout the rest of the results.
+
+\subsection{COVID-19 as a Structural Break}
+One of the clearest findings in the data is that the COVID-19 period represents a major structural break in U.S. domestic airline operations (Figure~\ref{fig:yearly_trends}). Passenger volume grew steadily from approximately 700 million in 2016 to a pre-pandemic peak in 2019, collapsed to under 200 million in 2020, and then recovered to slightly above pre-COVID levels by 2024. Freight behaved counter-cyclically, peaking during 2020--2021 as airlines pivoted to cargo operations when passenger belly capacity disappeared, before settling back to pre-pandemic levels.\\
+\indent Operating revenue collapsed more sharply than operating expenses in 2020, opening a gap that drove average quarterly net income deeply negative and reached approximately $-\$140{,}000$K per carrier-quarter at the trough. By 2024, revenue once again exceeded expenses and average net income had recovered to near pre-COVID levels. The on-time rate spiked to roughly 0.91 during the reduced-schedule COVID period, then settled back to about 0.80 post-COVID, which is slightly below the pre-COVID baseline of 0.82. This pattern is consistent with a less-congested network producing better on-time rates during the disruption rather than a durable improvement in airline efficiency \cite{FontanetPerez2022,Gudmundsson2021,MayerSinai2002}. These results support one of the central design choices in the project: pre-COVID, COVID, and post-COVID should be treated as analytically distinct periods rather than pooled into a single stable time series.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig0_yearly_trends.png}
+    \caption{Yearly industry trends in passenger volume, freight, operating revenue, operating expense, average quarterly net income, and on-time rate. The shaded region indicates the COVID-19 period (2020--2021).}
+    \label{fig:yearly_trends}
+\end{figure}
+
+Figure~\ref{fig:covid_boxplots} provides a complementary view by comparing the distributions of major performance indicators across pre-COVID, COVID, and post-COVID periods. The COVID period is associated with lower passenger volumes, weaker operating and net margins, and clear changes in service performance. The on-time rate rises sharply during COVID (median around 88\% versus roughly 80\% before and after), while the cancellation rate also rises during COVID before settling back down. Most counterintuitively, the post-COVID period shows the highest median average arrival delay ($\sim$73 minutes), exceeding both the pre-COVID ($\sim$65) and COVID ($\sim$63) periods. Together, these patterns reinforce the interpretation that service quality cannot be read off any single punctuality measure: a less-congested system can produce a high on-time rate even during major disruption, and the post-COVID recovery has reintroduced congestion-related delays even as flights are once again largely on time.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig3_covid_periods.png}
+    \caption{Key financial and service metrics across pre-COVID, COVID, and post-COVID periods. Boxplots show the distribution of carrier-quarter observations within each period.}
+    \label{fig:covid_boxplots}
+\end{figure}
+
+\subsection{Carrier-Type and Utilization Differences}
+Carrier-type differences in route-level utilization are pronounced (Figure~\ref{fig:loadfactor}). Using average passengers per route as a utilization proxy, Legacy carriers consistently operated at three to four times the level of Low-Cost and Regional carriers, with median pre-COVID values of approximately 18,000--20,000 passengers per route compared to roughly 3,500 for Low-Cost and 4,000 for Regional carriers. This is consistent with the hub-and-spoke model's tendency to concentrate passenger flows onto fewer high-density routes, an efficiency mechanism well documented in the economies-of-density literature \cite{Banker1993,Caves1984}.\\
+\indent During COVID, Legacy carriers experienced the largest absolute decline, with median passengers per route falling to approximately 7,500 in 2020 before recovering toward 18,000 by 2024. Low-Cost carriers dropped to roughly 1,800 at the COVID trough but showed a smaller absolute decline, while Regional carriers remained the most stable throughout. The post-COVID recovery patterns also differ: Legacy carriers have largely returned to pre-pandemic utilization, while Low-Cost carriers remain below their pre-COVID medians as of 2024. This suggests that network structure and traffic density matter alongside cost when evaluating operational efficiency, and that the path to efficiency runs through route-level concentration as much as through unit-cost reduction.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_loadfactor.png}
+    \caption{Average passengers per route by carrier type and period. Legacy carriers consistently operate with three-to-four-times the route-level traffic concentration of Low-Cost and Regional carriers.}
+    \label{fig:loadfactor}
+\end{figure}
+
+Comparisons of financial and operational KPIs (Figure~\ref{fig:carrier_kpis}) revealed further differences across business models. Cargo carriers show extreme cost-per-passenger and revenue-per-passenger values that extend above \$500, but these are driven by near-zero passenger denominators rather than genuine cost or revenue differences and should not be interpreted as comparable to passenger-carrier metrics. Among the directly comparable groups, Legacy carriers show wider distributional spread in both cost per passenger and operating margin, reflecting greater heterogeneity in their route networks, while Low-Cost carriers display narrower, more concentrated distributions consistent with their standardized fleet and simpler operating models. On-time rate distributions are broadly similar across Legacy and Low-Cost carriers, while the cancellation-rate distribution for Legacy is slightly wider, suggesting greater variability in disruption exposure.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig2_carrier_kpis.png}
+    \caption{Financial and operational KPI distributions by carrier type. Cargo carriers exhibit extreme passenger-based ratios because passenger denominators are very small; Legacy and Low-Cost carriers show clearer differences in spread and central tendency.}
+    \label{fig:carrier_kpis}
+\end{figure}
+
+\subsection{Cost and Service Performance}
+The project's central question concerns whether lower-cost structures align with better service performance. The exploratory results suggest that the relationship is not simple. Scatterplots comparing cost per passenger with on-time rate and cancellation rate did not show a strong linear relationship: carriers with similar cost levels exhibited substantially different service outcomes, indicating that business model and network structure shape service performance more strongly than cost level alone.\\
+\indent This result directly addresses the second research sub-question. Lower cost per passenger is not consistently associated with higher on-time rates or lower cancellation rates, suggesting that service reliability depends on more than cost structure alone. Instead, reliability appears to reflect a combination of route structure, congestion exposure, turnaround practices, aircraft rotations, and disruption recovery capacity. This finding supports the broader interpretation that cost efficiency and service quality are related, but not interchangeable, dimensions of airline performance.\\
+\indent Delay-cause analysis (Figure~\ref{fig:delay_causes}) provides additional context. Late-aircraft delay is the single largest source of delay minutes for all three carrier types, accounting for roughly 40\% of total delay across Legacy, Low-Cost, and Regional carriers. NAS delay is a substantial share for Legacy and Regional carriers, reflecting their greater exposure to hub congestion and air-traffic-control constraints. Carrier delay is proportionally larger for Low-Cost carriers relative to NAS, suggesting that disruptions in Low-Cost operations are more often traced back to internal factors such as maintenance, crew, or aircraft turnaround rather than airspace congestion. Weather delay is consistently small across all groups. This variation in delay-cause composition is important: a lower on-time rate means something different depending on whether it is driven by systemic congestion, late-arriving aircraft cascades, or carrier-specific disruptions \cite{Lee2023,MayerSinai2002}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{fig4_delay_causes.png}
+    \caption{Delay-cause composition by carrier type. Late-aircraft delay is the largest component across groups, while NAS and carrier delay vary by airline type.}
+    \label{fig:delay_causes}
+\end{figure}
+
+The recovery map in Figure~\ref{fig:recovery} examines cost-service-recovery relationships from a different angle, plotting for each carrier the change in operating margin against the change in on-time rate between the pre-COVID and post-COVID periods. A consistent finding is that operating margins declined post-COVID for every carrier in the sample. All observations fall to the left of zero on the x-axis, with changes in operating margin ranging from approximately $-0.05$ to $-0.40$. No carrier in the sample fully recovered its pre-COVID financial performance. What differs across carriers is the magnitude of that financial deterioration and whether it was accompanied by an improvement or a decline in on-time rate. A small number of Regional carriers managed modest positive changes in on-time rate (above the zero line on the y-axis), while most Legacy and Low-Cost carriers saw on-time rates decline post-COVID, placing them in the lower-left quadrant: financially weaker and operationally worse. Financial and operational recovery, in other words, do not move together.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{carrier_recovery_map.png}
+    \caption{Carrier recovery map: change in operating margin versus change in on-time rate from pre-COVID to post-COVID. Every carrier saw operating margins decline; on-time-rate changes are mixed.}
+    \label{fig:recovery}
+\end{figure}
+
+\subsection{Correlation Structure and Cluster Profiles}
+The correlation analysis (Figure~\ref{fig:correlation}) summarizes pairwise relationships among 17 operational, financial, and service-quality variables. Several expected relationships appear clearly. Operating revenue and operating expenses are nearly perfectly correlated ($r = 0.99$), which is unsurprising given that both scale with airline size. Passenger volume is strongly associated with distance flown ($r = 0.86$) and route count ($r = 0.79$). However, the row for operating margin tells a different story: correlations with most operational variables are close to zero, with the exception of a moderate negative relationship with cost per passenger ($r = -0.40$), indicating that higher per-passenger costs are associated with weaker margins. On-time rate shows only a weak positive association with operating margin, and average arrival delay shows a weak negative one. These patterns support the conclusion that financial performance depends on a combination of scale, network design, and cost efficiency rather than any single operational metric \cite{Banker1993,Li2025,Zuidberg2014}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig7_correlation.png}
+    \caption{Correlation heatmap across operational, financial, and service metrics. Strong relationships exist among scale variables, but no single operational measure fully explains financial performance.}
+    \label{fig:correlation}
+\end{figure}
+
+K-means clustering produced four distinct and interpretable operating profiles (Figure~\ref{fig:clusters}). \textbf{Cluster 0} captures large-scale passenger carriers averaging over 23 million passengers per quarter, operating nearly 1,900 routes, with barely positive operating margins ($\sim$1\%) and an on-time rate of 0.82 at roughly the industry average; this cluster is dominated by major Legacy carriers in non-COVID periods. \textbf{Cluster 1} captures mid-scale carriers with around 1.4 million passengers per quarter, mildly negative operating margins ($-4\%$), and similar on-time performance, representing a large middle tier of the industry. \textbf{Cluster 2} is an extreme outlier group with operating margins of approximately $-3{,}867\%$ and an average of fewer than two passengers per carrier-quarter, likely corresponding to very small carriers or data anomalies at the edge of the sample. \textbf{Cluster 3} captures cargo-dominant operations with per-passenger cost and revenue figures in the \$118K--\$126K range driven by an average passenger count of roughly three per observation; these metrics reflect freight-focused carriers for whom passenger denominators are essentially meaningless. These cluster profiles reinforce the conclusion that simple carrier-type labels are informative but not sufficient to capture the full heterogeneity in the data, and that COVID-era effects create cross-cutting variation that extends beyond business-model categories \cite{Kaya2023,Li2025}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{fig_cluster_profiles.png}
+    \caption{K-means cluster profiles based on operational, financial, and service variables. The four-cluster solution identifies large-scale passenger carriers, mid-scale carriers, distressed/outlier observations, and cargo-dominant profiles.}
+    \label{fig:clusters}
+\end{figure}
+
+\subsection{Operational Drivers of Net Income}
+To complement the descriptive and comparative analysis, Figure~\ref{fig:operational_drivers} examines the relationship between key operational variables and net income across carrier types. The figure plots passenger volume, freight activity, route-level utilization, and on-time performance against net income within a unified framework. The most notable pattern appears in the service-performance dimension: on-time rate exhibits a modest negative relationship with net income, indicating that improvements in service reliability are not necessarily associated with higher financial performance. This finding suggests the presence of trade-offs between operational efficiency, cost management, and service quality, and aligns with the idea that performance outcomes are shaped by broader system constraints rather than isolated operational improvements \cite{Lee2023,MayerSinai2002}.\\
+\indent More importantly, the figure highlights substantial heterogeneity across business models. Differences across carrier types are more visually pronounced than differences across the explanatory variables themselves. Cargo carriers follow patterns that differ fundamentally from passenger-based airlines, while Legacy, Low-Cost, and Regional carriers exhibit distinct distributions even at similar levels of operational intensity. This reinforces the interpretation that structural characteristics such as network design, cost structure, and market positioning play a more important role in determining financial outcomes than any single operational metric \cite{Gillen2005,Li2025,Nguyen2022}. The weak and inconsistent relationships observed across all panels also suggest that predictive models based solely on these variables are likely to have limited explanatory power, reinforcing the need for a more integrated and structural approach in the formal regression stage.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Figure9-ODvNI.png}
+    \caption{Carrier-type relationships between net income and key operational variables (log passengers, log freight, average passengers per route, on-time rate).}
+    \label{fig:operational_drivers}
+\end{figure}
+
+\section{Discussion}
+
+\subsection{Interpretation and Implications}
+The results point to several broader themes. First, airline cost efficiency cannot be reduced to simple size measures. The utilization analysis shows that route-level traffic concentration differs substantially across business models, with Legacy carriers operating at three-to-four times the per-route density of Low-Cost and Regional carriers. This is consistent with prior work emphasizing density economies, traffic concentration, and route structure as major determinants of airline cost performance \cite{Banker1993,Caves1984,Li2025,Zuidberg2014}.\\
+\indent Second, the relationship between cost and service quality is not straightforward. The COVID-period comparisons, delay-cause composition, and recovery map all suggest that better on-time performance can arise under very different operating conditions. Lower cost per passenger does not reliably produce better service outcomes, and on-time performance and cancellation patterns appear to be shaped by congestion, delay propagation, network structure, and carrier-specific operating models rather than by cost minimization alone \cite{Lee2023,MayerSinai2002}. This challenges any simple assumption that lower-cost carriers are always operationally superior.\\
+\indent Third, business-model differences remain central to understanding airline performance. Legacy, Low-Cost, Regional, and Cargo carriers differ not just in cost levels, but also in utilization, route design, financial dispersion, delay-cause composition, and post-COVID recovery patterns. The K-means cluster solution reinforces this conclusion while also revealing that operating profiles cut across the standard taxonomy: a distressed cluster (Cluster 2) and a cargo-dominant cluster (Cluster 3) both emerge as data-driven groupings that the simple Legacy/Low-Cost/Regional/Cargo categorization does not fully capture. This is broadly consistent with prior literature on airline heterogeneity and revenue or efficiency differences across business models \cite{Barbot2008,Gillen2005,Kaya2023,Li2025,Nguyen2022}.\\
+\indent This project also contributes to the literature by merging three types of airline information into a single carrier-quarter framework: operational, financial, and service-related data. Even though overlap across datasets is incomplete (681 observations matched across all three sources), this integrated perspective makes it possible to examine airline performance more holistically than studies focused on only one outcome type.\\
+\indent The project also raises ethical considerations. A cost-efficiency framework can be misused if it is interpreted as recommending aggressive cost minimization without regard to service reliability, labor strain, or regional access. What appears efficient at an aggregate level may increase fragility or worsen service for certain categories of travelers or smaller markets, particularly those that depend on regional connectivity. There is also an ethical risk in treating exploratory or predictive results as objective rankings of airlines when the data are incomplete and the relationships are not causal. A recent industry example is Spirit Airlines' announced wind-down of operations in May 2026, which falls outside this study's 2016--2024 analytical window but illustrates why long-run resilience remains an important issue for ultra-low-cost carriers \cite{spirit_shutdown2026}. This example should be interpreted only as contextual motivation, not as direct evidence from the dataset.
+
+\subsection{Challenges and Limitations}
+Several challenges constrain how the findings of this project should be interpreted. The biggest is data integration. T-100 provides broad operational coverage, but Form 41 and OTP have much narrower overlap; only 681 carrier-quarter observations are matched across all three sources. As a result, some of the strongest service and financial comparisons rely on smaller matched subsets rather than on the full 4,440-observation operational sample, limiting how broadly those findings can be generalized.\\
+\indent A second challenge is measurement. Because the T-100 extract used here does not include seats or departures performed, the analysis relies on average passengers per route as a utilization proxy rather than on true load factor. This proxy is informative but imperfect, and it is especially awkward for cargo-focused carriers, as shown by the extreme ratios in Cluster 3 and the Cargo carrier violin plots in Figure~\ref{fig:carrier_kpis}.\\
+\indent A third limitation is that the recovery map and cluster analysis are descriptive. The observed post-COVID margin declines and the variation in on-time-rate recovery cannot be attributed causally to carrier-type or cost-structure differences without controlling for route mix, network size, and period effects. The extreme values in Cluster 2 also warrant further investigation before any claims are made about what they represent.\\
+\indent A fourth limitation is that the regression specifications described in the Methods section have not yet been estimated; the inferential evidence presented here is exploratory rather than formal. Coefficients, standard errors, and significance tests will be added in the next phase of the project. Finally, near-perfect collinearity between operating revenues and operating expenses ($r = 0.99$) and the dominance of expense variables in the Random Forest results imply that future regression specifications must avoid conflating accounting identities with causal relationships.
+
+\subsection{Recommendations and Next Steps}
+Several extensions would strengthen the analysis. The most important is estimating the OLS regressions specified in the Methods section, including period-interacted terms that test whether cost-performance relationships differ across pre-COVID, COVID, and post-COVID environments. Reporting coefficients with robust standard errors would convert the current descriptive evidence into formal inferential results.\\
+\indent Beyond the regression stage, three additional extensions would be valuable. First, integrating Form 41 Schedule T-2 data on seats and departures performed would enable direct calculation of load factor and replace the passengers-per-route proxy. Second, refining the carrier classification would improve interpretability, particularly by handling the boundary cases between Legacy and Low-Cost carriers and by disaggregating the heterogeneous Regional category. Third, resolving the Cluster 2 anomaly by isolating which carrier-quarters are driving its extreme values would clarify whether it represents a real business pattern, a COVID artifact, or simple data quality issues.\\
+\indent Looking further ahead, future work could extend the analytical window past 2024 to study how the post-Spirit competitive landscape continues to evolve. Future work could also integrate additional data sources, such as fuel price series, labor cost indices, and route-level fare data, to build a richer picture of how external conditions interact with carrier business models. The integrated carrier-quarter framework developed in this project provides a foundation that other extensions can build on.
+
+
+\section{Conclusion}
+
+This project examined the relationship between airline cost efficiency and operational performance in the U.S. domestic airline industry by combining T-100 traffic data, Form 41 financial data, and On-Time Performance data into a single carrier-quarter framework spanning 2016 through 2024. Across the analysis, the most consistent result is that cost, efficiency, and service quality do not move together in a simple way.\\
+\indent Legacy carriers operate at substantially higher route-level traffic concentration than Low-Cost or Regional carriers, while Cargo carriers operate under fundamentally different unit economics that make passenger-based metrics difficult to interpret. The COVID-19 period represented a clear structural break, affecting both financial and operational outcomes across the industry. The recovery analysis showed that no carrier in the sample fully recovered its pre-COVID financial performance, and that financial recovery and operational recovery did not move together. Cluster analysis further revealed that operating profiles cut across the standard carrier-type taxonomy, identifying both a distressed group and a cargo-dominant group that the simple business-model categories do not capture.\\
+\indent More broadly, the results suggest that airline performance depends not only on cost minimization, but also on business model, network structure, traffic density, and operational resilience. Lower-cost strategies may produce some efficiency advantages, but they do not automatically guarantee better service or stronger long-term performance, a conclusion reinforced by recent industry developments outside the analytical window \cite{spirit_shutdown2026}. The bottom line is that cost efficiency, when treated as an isolated objective, is an incomplete framework for understanding airline performance. A more useful framework integrates cost, network design, and service-quality outcomes simultaneously, which is exactly what the merged carrier-quarter dataset developed in this project is designed to support in its next phase.
+\clearpage
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{abbrv}
+\bibliography{RoughDraftRefs}
+
+\clearpage
+\appendix
+\section{Project Code}
+
+The project code is available in the GitHub repository below:
+
+\begin{center}
+\url{https://github.com/mnmill21/DAT490_Project}
+\end{center}
+
+The repository includes the data-processing notebooks, cleaning scripts, exploratory analysis, model code, exported figures, and documentation used to reproduce the analysis. Because the raw datasets are too large to store directly in GitHub, the repository also includes references to the external data sources and linked data storage location used by the project team.
+
+\end{document}
