@@ -1,0 +1,175 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{fullpage}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{array}
+\usepackage{microtype}
+\usepackage{adjustbox}
+
+\setlength{\parindent}{.25in}
+\setlength{\parskip}{8pt}
+
+\begin{document}
+
+\title{Methodology}
+\author{Jood Alaswad, Arnol Garcia, Marissa Miller, Brandon Thacker}
+\date{\today}
+\maketitle
+
+\tableofcontents
+\newpage
+\setcounter{page}{1}
+
+\section{Analytical Approach}
+This methodology is designed to evaluate how airline cost structures relate to operational efficiency and service performance across U.S. domestic airlines. The analysis uses a carrier-quarter unit of observation and combines three Bureau of Transportation Statistics datasets: T-100 Domestic Segment data, Form 41 Schedule P-1.2 financial data, and On-Time Performance data. This allows the study of financial, operational, and service-related variables together within a common time frame.\\
+\indent The methodology is organized around the project’s three sub-questions. The first asks how the cost structure relates to operational efficiency. The second asks whether lower operating costs are associated with stronger or weaker service outcomes, including delays and cancellations. The third asks how different airline business models differ in their balance between cost, efficiency, and performance. To address these questions, the analysis uses a combination of extended exploratory data analysis (EDA), regression-based methods, correlation analysis, Random Forest feature importance, and K-means clustering \cite{kaya2023, li2025, nguyen2022}.\\
+\indent Preliminary EDA was used to identify major distributions, subgroup differences, and broad relationships among variables. Those results informed the formal analytical plan below, but the focus of this section is on how the project will test the research questions rather than on restating the exploratory findings.
+
+\section{Extended EDA}
+To better understand the relationships between airline cost structures, operational efficiency, and service performance, an extended EDA was conducted. This analysis builds upon the initial data preparation phase and focuses on identifying patterns, distributions, and relationships across key financial, operational, and service-related variables. Particular attention is given to how these relationships evolve over time, how they differ across airline business models, and how they were affected by the COVID-19 pandemic \cite{fontanet2022, gudmundsson2021}.
+
+\subsection{Distributional and Trend Analysis}
+We first examined distributions of key financial variables, including operating revenue, operating expenses, net income, and cost per passenger, shown in Figure~\ref{fig:eda1}. Because several of these variables exhibited strong right-skewness, log transformations were applied to reduce the influence of extreme values and make the underlying distributions easier to compare across carrier-quarter observations. This step helped clarify the degree of concentration or dispersion of financial outcomes across the sample and provided an early indication that scale alone would not be sufficient to explain differences in profitability \cite{banker1993, zuidberg2014}.\\
+\indent We then examined trends in passenger volume and financial metrics from 2016 through 2024. Time-series plots were used to evaluate temporal changes, with particular attention to the COVID-19 period. A clear disruption was observed during 2020--2021, so this period was treated separately in later analyses to account for its effect on demand, costs, and financial performance. This periodization is also consistent with the broader literature on pandemic-related structural shifts in airline markets \cite{fontanet2022, gudmundsson2021}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure1.png}
+    \caption{Log transformed distributions of operating revenue, operating expenses, net income, and cost per passenger across carrier-quarter observations.}
+    \label{fig:eda1}
+\end{figure}
+
+\subsection{Comparative and Relationship Analysis}
+Next, we compared operational efficiency across carrier types by examining passengers per route (Figure~\ref{fig:eda2}). Airlines were grouped into legacy, low-cost, and regional categories, and differences in utilization were evaluated using boxplots. This comparison provides a practical way to examine route-level traffic concentration across business models. Because the T-100 extract used in this project does not include seats or departures, average passengers per route serve as a utilization proxy rather than a direct load factor measure. This is not identical to load factor, but it still captures an important dimension of how intensively carriers use their route networks \cite{banker1993, caves1984, barbot2008}.\\
+\indent To explore relationships between cost efficiency and service performance, scatterplots were used to compare cost per passenger with metrics such as on-time rate and cancellation rate, shown in Figure~\ref{fig:eda3}. These visualizations were used to assess whether a simple pattern existed between cost and service outcomes before moving to more formal modeling. The broad dispersion of points suggested that any relationship between cost and service is likely shaped by additional factors such as carrier type, network structure, and period effects rather than by cost alone \cite{mayer2002, lee2023}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure2.png}
+    \caption{Average passengers per route by carrier type. Legacy carriers operate at higher passenger levels per route, while low-cost and regional carriers exhibit lower utilization and greater variability.}
+    \label{fig:eda2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure3.png}
+    \caption{Cost per passenger versus on-time rate by carrier type.}
+    \label{fig:eda3}
+\end{figure}
+
+\subsection{Statistical and Advanced Analytical Methods}
+Finally, more formal statistical and modeling methods were incorporated to quantify relationships observed in the earlier analysis. Correlation analysis was used to summarize the strength and direction of pairwise linear relationships between financial and operational variables. Early results indicated weak negative correlations between net income and key operational variables, including passengers ($-0.1053$), freight ($-0.2326$), and mail ($-0.1731$). These results suggested that increases in operational scale do not automatically translate into stronger financial performance, which reinforced the need to account for cost structure and business-model differences more directly \cite{banker1993, zuidberg2014}.\\
+\indent Machine learning techniques were also used to identify patterns that linear summaries might miss. A Random Forest model was used to evaluate the relative importance of features in predicting financial performance, and K-means clustering was used to group airlines based on operational and financial similarities. As shown in Figure~\ref{fig:eda4}, the clustering results reveal distinct differences across groups in terms of cost structure, margins, and operational scale. These groupings provide additional insight into how airlines differ beyond simple linear relationships and help identify performance profiles that may not align perfectly with predefined carrier categories \cite{breiman2001, macqueen1967, kaya2023}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{Figure4.png}
+    \caption{K-means cluster profiles showing average operational and financial characteristics for each cluster.}
+    \label{fig:eda4}
+\end{figure}
+
+The extended EDA therefore serves two purposes. First, it clarifies the structure of the merged airline dataset and identifies the most important differences. Second, it informs the formal methods that follow by showing which variables, groupings, and time periods are likely to matter most for answering the research questions.
+
+\section{Methods by Research Question}
+
+\subsection{Sub-Question 1: Cost Structure and Operational Efficiency}
+The first sub-question asks how the cost structure relates to operational efficiency. In this project, operational efficiency is measured primarily using average passengers per route, along with supporting route-level variables such as average distance per route, route count, and network size. This approach is motivated by the airline efficiency literature, which emphasizes traffic density, route structure, and network design as central determinants of cost performance \cite{banker1993, caves1984, barbot2008, zuidberg2014}.\\
+\indent The first stage of analysis for this question uses grouped comparisons across carrier type and time period. Boxplots and trend-based comparisons are used to compare average passengers per route and related utilization measures across Legacy, Low-Cost, and Regional carriers, as well as across pre-COVID, COVID, and post-COVID periods. \\
+\indent The second stage uses regression-based analysis to estimate the association between cost structure and utilization. A baseline specification is:
+
+\begin{align*}
+\text{PassengersPerRoute}_{it} =\;& \beta_0 
++ \beta_1 \text{CostPerPassenger}_{it}
++ \beta_2 \text{AvgDistancePerRoute}_{it} \\
+&+ \beta_3 \text{RouteCount}_{it}
++ \beta_4 \text{CarrierType}_{i}
++ \beta_5 \text{Period}_{t}
++ \epsilon_{it}
+\end{align*}
+
+where \(i\) indexes carrier and \(t\) indexes quarter. This model tests whether a lower cost per passenger is associated with denser route-level traffic, after accounting for route structure, business model, and COVID-period effects. This directly addresses the first hypothesis from the project plan, which expects stronger utilization patterns to be associated with more efficient cost structures \cite{barbot2008, zuidberg2014}.
+
+\subsection{Sub-Question 2: Cost Structure and Service Performance}
+The second sub-question asks whether lower operating costs are associated with better or worse service outcomes. The main service performance outcomes are on-time rate, cancellation rate, and average arrival delay. Delay causes shares are used as supplementary context to interpret whether service quality differences are more consistent with carrier-level disruption, congestion, or late-aircraft cascades \cite{mayer2002, lee2023}.\\
+\indent This question is first examined visually using scatterplots of cost per passenger against on-time rate and cancellation rate. These plots provide an initial sense of whether a simple relationship appears in the data. The broader spread in the EDA suggests that if a relationship exists, it is likely conditional on carrier type and time period rather than purely linear.\\
+\indent The main quantitative approach uses regression models with service outcomes as dependent variables. Baseline specifications include:
+
+\begin{align*}
+\text{OnTimeRate}_{it} =\;& \beta_0
++ \beta_1 \text{CostPerPassenger}_{it}
++ \beta_2 \text{CarrierType}_{i} \\
+&+ \beta_3 \text{Period}_{t}
++ \beta_4 \text{AvgDistancePerRoute}_{it}
++ \epsilon_{it}
+\end{align*}
+
+and
+
+\begin{align*}
+\text{CancellationRate}_{it} =\;& \beta_0
++ \beta_1 \text{CostPerPassenger}_{it}
++ \beta_2 \text{CarrierType}_{i} \\
+&+ \beta_3 \text{Period}_{t}
++ \beta_4 \text{AvgDistancePerRoute}_{it}
++ \epsilon_{it}
+\end{align*}
+
+These models test whether a lower cost per passenger is associated with stronger or weaker service outcomes, after accounting for airline type and time period. This corresponds directly to the second project sub-question and to the expectation that cost minimization may produce trade-offs in service performance for some carriers, though not necessarily in a uniform way \cite{lee2023, mayer2002}.
+
+\subsection{Sub-Question 3: Business Model Differences}
+The third sub-question asks how airline business models differ in their balance between cost, efficiency, and performance. This part of the methodology combines subgroup comparisons, regression with categorical carrier-type indicators, and unsupervised clustering. The literature on airline heterogeneity suggests that low-cost and legacy carriers differ not only in cost structure, but also in network design, pricing strategy, and how they absorb operational disruption \cite{fontanet2022, gillen2004, li2025, nguyen2022}.\\
+\indent First, financial, operational, and service variables are compared directly across Legacy, Low-Cost, Regional, and Cargo carriers using boxplots, violin plots, and quarterly trends. These comparisons provide a direct way to assess whether certain business models operate at lower costs, with stronger utilization, with better service, or with some combination of these outcomes.\\
+\indent Second, regression models incorporate carrier-type indicators and period interactions to test whether the relationship between cost and performance differs systematically across business models. For example, a model of operating margin can be written as:
+
+\begin{align*}
+\text{OperatingMargin}_{it} =\;& \beta_0
++ \beta_1 \text{CostPerPassenger}_{it}
++ \beta_2 \text{PassengersPerRoute}_{it} \\
+&+ \beta_3 \text{OnTimeRate}_{it}
++ \beta_4 \text{CarrierType}_{i}
++ \beta_5 \text{Period}_{t}
++ \epsilon_{it}
+\end{align*}
+
+This specification is not intended as a final causal model, but as a structured way to compare how cost, utilization, and service variables move together across carrier groups and across time. This addresses the third project sub-question by testing whether business model differences persist even after accounting for financial, operational, and service factors.
+
+\section{Inferential Statistics}
+Although the project does not rely on isolated hypothesis tests as its main analytical framework, inferential statistics are incorporated through regression based estimation and correlation analysis. This approach is more appropriate for the structure of the airline dataset because the research questions involve multiple predictors, multiple outcomes, and important subgroup differences across carrier type and COVID period \cite{li2025, nguyen2022}.\\
+\indent Ordinary least squares regression will be used to estimate whether cost per passenger, utilization, and business model indicators are statistically associated with outcomes such as passengers per route, operating margin, on-time rate, and cancellation rate. Inference will be based on coefficient estimates, their directions, magnitudes, and associated uncertainties rather than on disconnected mean-comparison tests.\\
+\indent Correlation analysis is used as a supplementary inferential tool to summarize the direction and strength of pairwise linear associations among operational, financial, and service variables. The Pearson correlation coefficient is defined as:
+
+\begin{equation*}
+r =
+\frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}
+{\sqrt{\sum_{i=1}^{n} (x_i - \bar{x})^2}
+\sqrt{\sum_{i=1}^{n} (y_i - \bar{y})^2}}
+\end{equation*}
+
+This analysis is especially useful for identifying broad linear relationships and for flagging possible multicollinearity issues before regression modeling. In the current dataset, the weak correlations between operational scale variables and net income suggest that financial performance depends on more than traffic volume alone \cite{banker1993, zuidberg2014}.
+
+\section{Supplementary Analytical Methods}
+
+\subsection{Random Forest Feature Importance}
+A Random Forest model is included as a supplementary analytical method rather than a primary causal framework. Its main role is to identify which operational, financial, and service variables are most important in predicting quarterly net income. This helps determine whether financial outcomes are driven more by direct cost structure, by traffic scale, or by service-performance variables \cite{breiman2001}.\\
+\indent The Random Forest model is estimated using carrier-quarter observations with non-null net income and a train-test split. Model performance is evaluated using out-of-sample \(R^2\) and RMSE. Feature importance rankings are then used to compare the relative contribution of variables such as operating expenses, cost per passenger, route count, freight, and on-time rate.\\
+\indent Because some financial predictors are closely tied to net income by construction, the Random Forest results will be interpreted cautiously. The model is useful for exploratory variable prioritization, but it is not intended to establish causal effects.
+
+\subsection{K-Means Clustering}
+K-means clustering is used to identify recurring airline operating profiles based on financial, operational, and service-quality variables. The goal of clustering is to determine whether data-driven groupings align with the theoretical business-model categories used elsewhere in the project or whether additional patterns emerge that cut across those categories \cite{macqueen1967, kaya2023}.\\
+\indent The clustering variables include measures of scale, cost structure, profitability, route intensity, and, where available, service performance. Prior to clustering, variables are standardized to prevent large-scale financial variables from dominating the distance metric. The elbow method is used to choose a reasonable number of clusters.\\
+\indent Cluster analysis is intended to complement, rather than replace, the carrier-type framework. It provides a way to determine whether airlines naturally fall into distinct operating profiles, such as large passenger carriers, cargo-heavy carriers, distressed low-passenger carriers, or mixed mid-size operations.
+
+\section{Planned Additional Analyses and Limitations}
+The main additional analyses planned for the next stage are regression models focused on operating margin, net margin, on-time rate, and cancellation rate as outcomes. These models will include business-model categories and COVID-period indicators, and may also include interaction terms to test whether the relationship between cost and performance differs across airline types or across time.\\
+\indent This methodology also has several limitations. First, the T-100 data provide much broader coverage than Form 41 and OTP, so not all analyses can be conducted on the same sample size. Second, because seats and departures performed are not included in the T-100 extract used here, the project relies on average passengers per route as a utilization proxy rather than true load factor. Third, some financial variables, especially operating revenues and operating expenses, are closely connected to net income by construction, which creates interpretation challenges in predictive modeling \cite{banker1993, zuidberg2014}.\\
+\indent Despite these limitations, the proposed methodology is designed to answer the project’s core questions in an interpretable way. By combining extended EDA, regression-based models, correlation analysis, Random Forest feature importance, and clustering, the project can evaluate how airlines balance cost control, operational efficiency, and service reliability across business models and across the COVID disruption period.
+
+\bibliographystyle{abbrv}
+\bibliography{MethodologyRefs}
+
+\end{document}
