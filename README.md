@@ -1,5 +1,4 @@
-# DAT490_Project
-Analysis of U.S. Airline Cost Efficiency and Operational Performance
+# DAT490 Project: Analysis of U.S. Airline Cost Efficiency and Operational Performance
 
 This repository contains code, data references, figures, and written reports for our DAT490 capstone project on airline cost efficiency and operational performance.
 
