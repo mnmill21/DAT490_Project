@@ -1,0 +1,73 @@
+\documentclass[11pt, letterpaper]{article}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{fullpage}
+\setlength{\parindent}{.25in}
+\setlength{\parskip}{8pt}
+
+\title{Capstone Project Plan}
+
+\author{Jood Alaswad, Arnol Garcia, Marissa Miller, Brandon Thacker}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Background and Research Question}
+
+The United States airline industry operates in a highly competitive and cost-sensitive environment. Airlines must continuously balance operating costs, efficiency, and service performance while responding to volatile fuel prices, labor costs, changing demand, and strong competitive pressure. Although low-cost carriers are often viewed as more efficient because of streamlined operations and lower cost structures, legacy carriers may retain advantages in network scope, connectivity, and service differentiation \cite{barbot2008, fontanet2022}. Prior research suggests that airline efficiency is closely tied to utilization, traffic density, and network design rather than cost alone \cite{banker1993, caves1984, zuidberg2014}. At the same time, service outcomes such as delays and cancellations do not always indicate simple inefficiency, since some disruptions may result from hub scheduling and network optimization \cite{mayer2002, lee2023}. 
+
+These tensions make the airline industry a useful setting for studying whether lower operating costs align with stronger operational outcomes or whether they create trade-offs that harm service quality. The COVID-19 pandemic provides an additional reason to study these relationships over time, since it created a major external shock that affected airline demand, finances, and recovery patterns differently across business models \cite{fontanet2022, gudmundsson2021, nguyen2022}. Therefore, the goal of this project is to evaluate how airline cost structures relate to operational efficiency and service performance across U.S. domestic airlines, with particular attention to differences between low-cost and legacy carriers and to variation across pre-COVID, COVID, and post-COVID periods.
+
+\subsection{Sub-Question 1}
+How do different cost structures relate to operational efficiency measures such as passengers per route, average route distance, and network size?
+
+\textbf{Hypothesis:} We expect airlines with lower unit operating costs and stronger utilization patterns to exhibit more passengers per route and greater average distances per route. We also expect low-cost carriers to appear more efficient on these utilization-based measures than legacy carriers on average\cite{barbot2008, zuidberg2014}.
+
+\subsection{Sub-Question 2}
+Is there a relationship between operating costs and service performance metrics such as delays, reliability, and cancellations?
+
+\textbf{Hypothesis:} We expect lower operating costs to be associated with trade-offs in service performance for at least some carriers, especially when cost minimization reduces operational flexibility. However, we do not expect this relationship to be uniform across all airlines, as delay and cancellation outcomes are also shaped by network structure and scheduling strategies \cite{lee2023, mayer2002}.
+
+\subsection{Sub-Question 3}
+How do different airline business models, such as low-cost carriers versus legacy carriers, differ in their balance between cost, efficiency, and performance?
+
+\textbf{Hypothesis:} We expect low-cost carriers to show stronger performance on cost and utilization metrics, while legacy carriers may perform better on some service and network-related outcomes. We also expect these relationships to differ across the pre-COVID, COVID, and post-COVID periods because the pandemic affected airline business models differently \cite{fontanet2022, gudmundsson2021}.
+
+
+\section{Summary of Literature Review}
+
+The literature on airline efficiency suggests that cost performance, operational efficiency, and service quality are closely related but not always aligned. Research on airline business models shows that low-cost carriers and legacy carriers differ in fleet structure, network design, pricing strategy, and service offerings, which affects how they manage costs and utilization \cite{barbot2008, fontanet2022}. Prior studies also find that airline efficiency depends heavily on traffic density, aircraft utilization, and route structure rather than on scale alone \cite{banker1993, caves1984, zuidberg2014}. 
+
+At the same time, the literature shows that lower costs do not always translate to better service outcomes. Delays, cancellations, and reliability must be interpreted carefully because some operational disruptions may reflect the structure of hub networks and scheduling choices rather than simple inefficiency \cite{mayer2002, lee2023}. More recent studies also emphasize that airline heterogeneity matters and that performance comparisons should account for differences in business model and operating context \cite{li2025, nguyen2022}. 
+
+The COVID-19 pandemic further disrupted the airline industry by altering demand, costs, and operational patterns. Existing research suggests that low-cost carriers often showed stronger short-run resilience during the pandemic, but recovery patterns differed across airline types \cite{fontanet2022, gudmundsson2021}. Together, this literature motivates an empirical analysis of whether lower-cost airline strategies are associated with stronger operational outcomes or with trade-offs in service quality across different periods and business models.
+
+\section{Datasets}
+
+This project uses three main datasets from the Bureau of Transportation Statistics (BTS): T-100 Domestic Segment data, Form 41 Schedule P-1.2 Financial Data, and the On-Time Performance dataset. These datasets allow us to connect airline traffic, financial outcomes, and service performance in a unified analysis of U.S. domestic airlines.
+
+The T-100 Domestic Segment dataset provides operational and traffic information at the segment level, including passengers, freight, mail, departures performed, seats, available capacity, and distance. These variables can be aggregated to the carrier-month, carrier-quarter, and carrier-year levels in order to construct operational efficiency measures such as load factor, passengers per flight, departures, available seats, and traffic volume.
+
+The BTS Form 41 Schedule P-1.2 dataset provides quarterly financial and operational information by carrier. Relevant variables include operating revenues, operating expenses, net income, and operating profit or loss. These variables will be used to construct cost and financial indicators such as operating cost per passenger, operating cost per departure, and broader measures of profitability and cost efficiency.
+
+The BTS On-Time Performance dataset provides service performance measures related to reliability, including arrival delays, cancellation indicators, delay cause composition, and other operational outcomes. These data will be aggregated to match the carrier-period level used in the merged analysis and will support the study of whether lower operating costs are associated with stronger or weaker service quality outcomes.
+
+The datasets will be merged primarily by carrier and time period. Carrier identifiers, such as UNIQUE\_CARRIER or carrier codes, will be used to align airlines across sources, while monthly and quarterly time variables will be used to construct consistent comparison periods. The final analytic dataset will be organized around carrier-period observations and divided into three time frames: pre-COVID (2016--2019), COVID (2020--2021), and post-COVID (2022--2025). In addition, airlines will be classified into business model categories, such as low-cost and legacy carriers, to support subgroup comparisons. 
+
+\section{EDA and Methodology}
+
+The analysis will be conducted primarily in Python using a Jupyter Notebook environment, with visualization in matplotlib and seaborn, and, optionally, Tableau for presentation-quality figures. The first stage of the project consists of data cleaning, standardization, and merging across BTS datasets. This includes resolving identifier differences across files, converting financial and traffic variables to numeric form, aggregating observations to consistent carrier-period units, and constructing derived indicators for cost, efficiency, and service performance.
+
+Initial exploratory data analysis will focus on descriptive statistics and visualizations for the major variables of interest. Planned visualizations include time-series plots, distributions, grouped boxplots, correlation heatmaps, and scatterplots showing relationships among operating cost, passenger volume, load factor, delay rate, cancellation rate, and profitability. These analyses will be disaggregated by airline business model and time period to compare low-cost and legacy carriers across the pre-COVID, COVID, and post-COVID periods.
+
+The project will then use comparative analysis and regression-based methods to evaluate the relationships among cost, efficiency, and performance. Rather than estimating a full frontier model, the analysis will focus on observable performance indicators constructed from BTS data. Possible modeling approaches include linear regression for cost-efficiency relationships, additional models for delay and cancellation outcomes, and clustering methods to identify carriers with similar cost-performance profiles. This approach is intended to provide an interpretable comparison of how airlines balance operating cost control with operational efficiency and service reliability.
+
+\bibliographystyle{abbrv}
+\bibliography{refs}
+
+\end{document}
